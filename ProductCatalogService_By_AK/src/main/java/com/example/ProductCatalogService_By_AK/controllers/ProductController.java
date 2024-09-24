@@ -8,9 +8,7 @@ import com.example.ProductCatalogService_By_AK.services.IProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +18,10 @@ public class ProductController {
 
     @Autowired
     private IProductService iProductService;
+
+    //    public ProductController(IProductService productService) {
+//        this.productService = productService;
+//    }
 
     @GetMapping("/products")
     public List<ProductDto> getProducts() {
@@ -36,6 +38,39 @@ public class ProductController {
         }
 
         return null;
+    }
+
+    @GetMapping("/products/{id}")
+    public ResponseEntity<ProductDto> getProductById(@PathVariable("id") Long productId) {
+        try {
+            if (productId < 1) {
+                throw new RuntimeException("Product Not Found !!!");
+            }
+
+            Product product = iProductService.getProductById(productId);
+            if (product == null) {
+                return  null;
+            }
+
+            return new ResponseEntity<>(from(product), HttpStatus.OK);
+        }
+        catch (RuntimeException e) {
+//            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            throw e;
+        }
+    }
+
+    @PostMapping("/products")
+    public ProductDto createProduct(@RequestBody ProductDto productDto) {
+        Product product = from(productDto);
+        Product response = iProductService.createProduct(product);
+        return from(response);
+    }
+
+    @PutMapping("/products/{id}")
+    public ProductDto replaceProduct(@PathVariable("id") Long id, @RequestBody ProductDto productDto) {
+        Product product = iProductService.replaceProduct(id, from(productDto));
+        return from(product);
     }
 
     private ProductDto from(Product product) {
